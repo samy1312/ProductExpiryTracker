@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'cameraview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'globals.dart' as globals;
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
@@ -20,15 +21,15 @@ Future<void> main() async {
   // Get a specific camera from the list of available cameras.
   final firstCamera = cameras.first;
 
-  runApp( MaterialApp(title: "dndjfnvds",
-  home: MyApp(camera: firstCamera),)
-  );
+  runApp(MaterialApp(
+    title: "dndjfnvds",
+    home: MyApp(camera: firstCamera),
+  ));
 }
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key, required this.camera});
-    final CameraDescription camera;
-
+  final CameraDescription camera;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -36,7 +37,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool isLoading = false;
-   final textStyle = GoogleFonts.openSans(
+  final textStyle = GoogleFonts.openSans(
     color: Colors.black,
     fontWeight: FontWeight.bold,
     fontSize: 18,
@@ -53,20 +54,26 @@ class _MyAppState extends State<MyApp> {
   );
   @override
   Widget build(BuildContext context) {
+     globals.productList.sort((a, b) {
+  int aDate = DateTime.parse(a[1] ?? '').microsecondsSinceEpoch;
+  int bDate = DateTime.parse(b[1] ?? '').microsecondsSinceEpoch;
+  print(aDate);
+  print(bDate);
+ 
+  return aDate.compareTo(bDate);
+});
     return Scaffold(
       appBar: AppBar(
         title: Text(
-                        'Expiry Product Tracker',
-                        style: GoogleFonts.openSans(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                        ),
-                      ),
+          'Expiry Product Tracker',
+          style: GoogleFonts.openSans(
+            color: Colors.black,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+          ),
+        ),
         iconTheme: IconThemeData(color: Colors.black),
-        actions: [
-          
-        ],
+        actions: [],
         systemOverlayStyle: SystemUiOverlayStyle(
             statusBarColor: Colors.white,
             statusBarIconBrightness: Brightness.dark,
@@ -88,60 +95,136 @@ class _MyAppState extends State<MyApp> {
               child: Center(
                 child: Column(
                   children: [
-                    SizedBox(
-                      height: 10,
-                    ),
-                    
-                   
-                    MaterialButton(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.black,
-                        minWidth: 0.8 * MediaQuery.of(context).size.width,
-                        height: 50,
-                        onPressed: () async {
-                         Navigator.push(context,MaterialPageRoute(
-                builder: (context) => TakePictureScreen(camera: widget.camera)));
+                    Expanded(
+                        child: Container(
+                      width: MediaQuery.of(context).size.width * 0.95,
+                      height: 20,
+                      padding: EdgeInsets.all(10),
+                      child: ListView.builder(
+                        itemCount: globals.productList.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                              color: Colors.white60,
+                              shadowColor: Colors.white,
+                              child: ListTile(                             
+                                trailing: IconButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      globals.productList.removeAt(index);
+                                    });
+                                  },
+                                  icon: Icon(
+                                    Icons.remove_circle,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                                onTap: () {},
+                                title: Text(
+                                  globals.productList[index][0],
+                                  style: GoogleFonts.openSans(
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                    letterSpacing: .3,
+                                  ),
+                                ),
+                                subtitle: Text(
+                                  globals.productList[index][1],
+                                  style: GoogleFonts.openSans(
+                                    color: Colors.black54,
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 15,
+                                    letterSpacing: .3,
+                                  ),
+                                ),
+                              ));
                         },
-                        child: Text(
-                          'Click a pic',
-                          style: whiteboldtextStyle,
-                        )),
-                 SizedBox(
-                      height: 10,
-                    ),
-                MaterialButton(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        color: Colors.black,
-                        minWidth: 0.8 * MediaQuery.of(context).size.width,
-                        height: 50,
-                        onPressed: () async {
-                            var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
-
-                        },
-                        child: Text(
-                          'Upload a pic',
-                          style: whiteboldtextStyle,
-                        )),
+                      ),
+                    )),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Center(
-                          child: Text(
-                        '',
-                        style: GoogleFonts.openSans(
-                          color: Colors.green,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 20,
-                          letterSpacing: .2,
-                        ),
-                      )),
-                    ),
-                    
+                      child: MaterialButton(
+                          splashColor: Colors.white70,
+                          onPressed: () {
+                            _openBottomSheet();
+                          },
+                          color: Colors.black,
+                          textColor: Colors.white,
+                          child: Icon(
+                            Icons.add,
+                            size: 22,
+                          ),
+                          padding: EdgeInsets.all(18),
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(10)))),
+                    )
                   ],
                 ),
               ),
             ),
     );
+  }
+
+  _openBottomSheet() {
+    return showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10))),
+        builder: (context) {
+          return FractionallySizedBox(
+            heightFactor: 0.3,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          width: 40,
+                          child: Divider(
+                            thickness: 3.0,
+                            height: 20,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+              MaterialButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  color: Colors.black,
+                  minWidth: 0.8 * MediaQuery.of(context).size.width,
+                  height: 50,
+                  onPressed: () async {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                TakePictureScreen(camera: widget.camera)));
+                  },
+                  child: Text(
+                    'Click a pic',
+                    style: whiteboldtextStyle,
+                  )),
+              SizedBox(
+                height: 10,
+              ),
+              MaterialButton(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  color: Colors.black,
+                  minWidth: 0.8 * MediaQuery.of(context).size.width,
+                  height: 50,
+                  onPressed: () async {
+                    var image = await ImagePicker.platform
+                        .pickImage(source: ImageSource.gallery);
+                  },
+                  child: Text(
+                    'Upload a pic',
+                    style: whiteboldtextStyle,
+                  )),
+            ]),
+          );
+        });
   }
 }
