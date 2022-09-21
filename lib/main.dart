@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:product_expiry_tracker/notifications_api.dart';
 import 'cameraview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -52,15 +53,30 @@ class _MyAppState extends State<MyApp> {
     fontWeight: FontWeight.bold,
     fontSize: 16,
   );
+
+  @override
+  void initState() async {
+    super.initState();
+    await NotificationApi().setup();
+
+    listenNotificationClicks();
+  }
+
+  void listenNotificationClicks() {
+    NotificationApi.notificaitonClicks.stream.listen((event) {
+      debugPrint(event);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
      globals.productList.sort((a, b) {
-  int aDate = DateTime.parse(a[1] ?? '').microsecondsSinceEpoch;
-  int bDate = DateTime.parse(b[1] ?? '').microsecondsSinceEpoch;
-  print(aDate);
-  print(bDate);
+      // int aDate = DateTime.parse(a[1] ?? '').microsecondsSinceEpoch;
+      // int bDate = DateTime.parse(b[1] ?? '').microsecondsSinceEpoch;
+      // print(aDate);
+      // print(bDate);
  
-  return aDate.compareTo(bDate);
+      return a[1].compareTo(b[1]);
 });
     return Scaffold(
       appBar: AppBar(
@@ -118,7 +134,15 @@ class _MyAppState extends State<MyApp> {
                                     color: Colors.black54,
                                   ),
                                 ),
-                                onTap: () {},
+                                onTap: () {
+                                  NotificationApi.scheduleNotification(
+                                      title: "${globals.productList[index][0]} is expiring soon!",
+                                      body:
+                                          "Your product ${globals.productList[index][0]} is expiring soon on ${globals.productList[index][1]}. Please consume it before it expires!",
+                                      payload: "TestNotification",
+                                      scheduledDate: DateTime.now()
+                                          .add(Duration(seconds: 10)));
+                                },
                                 title: Text(
                                   globals.productList[index][0],
                                   style: GoogleFonts.openSans(
