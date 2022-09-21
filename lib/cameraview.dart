@@ -1,11 +1,16 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:async/async.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:product_expiry_tracker/expirybody.dart';
+import 'package:product_expiry_tracker/main.dart';
+import 'globals.dart' as globals;
 
 // A screen that allows users to take a picture using a given camera.
 class TakePictureScreen extends StatefulWidget {
@@ -50,7 +55,29 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
+       appBar: AppBar(
+        title: Text(
+          'Expiry Product Tracker',
+          style: GoogleFonts.openSans(
+            color: Colors.black,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+          ),
+        ),
+        iconTheme: IconThemeData(color: Colors.black),
+        actions: [],
+        systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.white,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20))),
+        elevation: 2.0,
+        backgroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.white,
       // You must wait until the controller is initialized before displaying the
       // camera preview. Use a FutureBuilder to display a loading spinner until the
       // controller has finished initializing.
@@ -67,6 +94,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.black,
         // Provide an onPressed callback.
         onPressed: () async {
           // Take the Picture in a try / catch block. If anything goes wrong,
@@ -87,6 +115,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 builder: (context) => DisplayPictureScreen(
                   // Pass the automatically generated path to
                   // the DisplayPictureScreen widget.
+                  camera: widget.camera,
                   imagePath: image.path,
                 ),
               ),
@@ -96,47 +125,108 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             print(e);
           }
         },
-        child: const Icon(Icons.camera_alt),
+        child: const Icon(Icons.camera_alt, color: Colors.white,),
       ),
     );
   }
 }
 
 // A widget that displays the picture taken by the user.
-class DisplayPictureScreen extends StatelessWidget {
+class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
+    final CameraDescription camera;
 
-  const DisplayPictureScreen({super.key, required this.imagePath});
+  const DisplayPictureScreen({super.key, required this.imagePath, required this.camera});
+
+  @override
+  State<DisplayPictureScreen> createState() => _DisplayPictureScreenState();
+}
+
+class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
+  TextEditingController pnameController = TextEditingController();
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
+      appBar: AppBar(
+        title: Text(
+          'Expiry Product Tracker',
+          style: GoogleFonts.openSans(
+            color: Colors.black,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+          ),
+        ),
+        iconTheme: IconThemeData(color: Colors.black),
+        actions: [],
+        systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.white,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20))),
+        elevation: 2.0,
+        backgroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.white,
       // The image is stored as a file on the device. Use the `Image.file`
       // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
+      body: isLoading? Center(child: CircularProgressIndicator()) :SingleChildScrollView(
+        child: Column(children: [
+          Image.file(File(widget.imagePath)),
+          Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: TextField(
+                        style: GoogleFonts.openSans(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 17,
+                          letterSpacing: .3,
+                        ),
+                        cursorHeight: 25,
+                        controller: pnameController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(
+                          border: UnderlineInputBorder(),
+                          hintText: 'Enter Product name',
+                          hintStyle: GoogleFonts.openSans(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        )),
+                  ),
+        ]),
+      ),
       floatingActionButton: FloatingActionButton(
+                backgroundColor: Colors.black,
         // Provide an onPressed callback.
         onPressed: () async {
+          setState(() {
+            isLoading = true;
+          });
           // Take the Picture in a try / catch block. If anything goes wrong,
           // catch the error.
           try {
             // Ensure that the camera is initialized.
-            File imageFile = File(imagePath);
-            var stream = new http.ByteStream(
-                DelegatingStream.typed(imageFile.openRead()));
+            File imageFile = File(widget.imagePath);
+            List<int> imageBytes = imageFile.readAsBytesSync();
+            String base64Image = base64Encode(imageBytes);
+            
             // get file length
-            var length =
-                await imageFile.length(); //imageFile is your image file
+             //imageFile is your image file
             Map<String, String> headers = {
               "Content-Type": "application/json",
             }; // ignore this headers if there is no authentication
-            Map data = {'name': 'Shravan'};
+            Map data = {'name':pnameController.text.trim(),'image': base64Image};
             var body = json.encode(data);
             
 
             // // string to uri
-            var uri = Uri.parse("https://9925-2404-f801-8028-1-6cb2-b3d4-1575-721c.in.ngrok.io/api/LifeTracker");
+            var uri = Uri.parse("https://8d04-2404-f801-8028-1-ec1f-cc51-1674-6baa.in.ngrok.io/api/LifeTracker");
             var response = await http.post(uri,headers: headers,body: body);
 
             // // create multipart request
@@ -159,7 +249,15 @@ class DisplayPictureScreen extends StatelessWidget {
             // var response = await request.send();
 
             print('${response.statusCode}');
-            print('${response.body}');
+            var serverData = json.decode(response.body);
+            globals.productList.add([serverData.keys.elementAt(0),serverData.values.elementAt(0)]);
+           
+            print(globals.productList);
+            Navigator.push(context,MaterialPageRoute(
+                builder: (context) => MyApp(camera: widget.camera,)));
+            setState(() {
+              isLoading = false; 
+            });                
 
             // // listen for response
             // response.stream.transform(utf8.decoder).listen((value) {
@@ -170,7 +268,7 @@ class DisplayPictureScreen extends StatelessWidget {
             print(e);
           }
         },
-        child: const Icon(Icons.camera_alt),
+        child: const Icon(Icons.send, color: Colors.white,),
       ),
     );
   }
