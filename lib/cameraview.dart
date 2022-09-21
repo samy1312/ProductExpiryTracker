@@ -55,7 +55,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-       appBar: AppBar(
+      appBar: AppBar(
         title: Text(
           'Expiry Product Tracker',
           style: GoogleFonts.openSans(
@@ -125,7 +125,10 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             print(e);
           }
         },
-        child: const Icon(Icons.camera_alt, color: Colors.white,),
+        child: const Icon(
+          Icons.camera_alt,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -134,9 +137,10 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 // A widget that displays the picture taken by the user.
 class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
-    final CameraDescription camera;
+  final CameraDescription camera;
 
-  const DisplayPictureScreen({super.key, required this.imagePath, required this.camera});
+  const DisplayPictureScreen(
+      {super.key, required this.imagePath, required this.camera});
 
   @override
   State<DisplayPictureScreen> createState() => _DisplayPictureScreenState();
@@ -174,35 +178,37 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       backgroundColor: Colors.white,
       // The image is stored as a file on the device. Use the `Image.file`
       // constructor with the given path to display the image.
-      body: isLoading? Center(child: CircularProgressIndicator()) :SingleChildScrollView(
-        child: Column(children: [
-          Image.file(File(widget.imagePath)),
-          Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: TextField(
-                        style: GoogleFonts.openSans(
-                          color: Colors.black87,
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(children: [
+                Image.file(File(widget.imagePath)),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: TextField(
+                      style: GoogleFonts.openSans(
+                        color: Colors.black87,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 17,
+                        letterSpacing: .3,
+                      ),
+                      cursorHeight: 25,
+                      controller: pnameController,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: InputDecoration(
+                        border: UnderlineInputBorder(),
+                        hintText: 'Enter Product name',
+                        hintStyle: GoogleFonts.openSans(
+                          color: Colors.black,
                           fontWeight: FontWeight.w700,
-                          fontSize: 17,
-                          letterSpacing: .3,
+                          fontSize: 15,
                         ),
-                        cursorHeight: 25,
-                        controller: pnameController,
-                        textCapitalization: TextCapitalization.words,
-                        decoration: InputDecoration(
-                          border: UnderlineInputBorder(),
-                          hintText: 'Enter Product name',
-                          hintStyle: GoogleFonts.openSans(
-                            color: Colors.black,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                        )),
-                  ),
-        ]),
-      ),
+                      )),
+                ),
+              ]),
+            ),
       floatingActionButton: FloatingActionButton(
-                backgroundColor: Colors.black,
+        backgroundColor: Colors.black,
         // Provide an onPressed callback.
         onPressed: () async {
           setState(() {
@@ -215,19 +221,22 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
             File imageFile = File(widget.imagePath);
             List<int> imageBytes = imageFile.readAsBytesSync();
             String base64Image = base64Encode(imageBytes);
-            
+
             // get file length
-             //imageFile is your image file
+            //imageFile is your image file
             Map<String, String> headers = {
               "Content-Type": "application/json",
             }; // ignore this headers if there is no authentication
-            Map data = {'name':pnameController.text.trim(),'image': base64Image};
+            Map data = {
+              'name': pnameController.text.trim(),
+              'image': base64Image
+            };
             var body = json.encode(data);
-            
 
             // // string to uri
-            var uri = Uri.parse("https://8d04-2404-f801-8028-1-ec1f-cc51-1674-6baa.in.ngrok.io/api/LifeTracker");
-            var response = await http.post(uri,headers: headers,body: body);
+            var uri = Uri.parse(
+                "https://a6d5-2404-f801-8028-3-ec1d-cc51-1674-6baa.in.ngrok.io/api/LifeTracker");
+            var response = await http.post(uri, headers: headers, body: body);
 
             // // create multipart request
             // var request = new http.MultipartRequest("POST", uri);
@@ -250,14 +259,25 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
             print('${response.statusCode}');
             var serverData = json.decode(response.body);
-            globals.productList.add([serverData.keys.elementAt(0),serverData.values.elementAt(0)]);
-           
+            globals.productList.add([
+              serverData.keys.elementAt(0),
+              int.parse(serverData.values.elementAt(0))
+            ]);
+            print(serverData);
+            var dt = DateTime.fromMillisecondsSinceEpoch(
+                int.parse(serverData.values.elementAt(0)));
+            print(dt);
             print(globals.productList);
-            Navigator.push(context,MaterialPageRoute(
-                builder: (context) => MyApp(camera: widget.camera,)));
+           
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => MyApp(
+                          camera: widget.camera,
+                        )));
             setState(() {
-              isLoading = false; 
-            });                
+              isLoading = false;
+            });
 
             // // listen for response
             // response.stream.transform(utf8.decoder).listen((value) {
@@ -268,7 +288,10 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
             print(e);
           }
         },
-        child: const Icon(Icons.send, color: Colors.white,),
+        child: const Icon(
+          Icons.send,
+          color: Colors.white,
+        ),
       ),
     );
   }

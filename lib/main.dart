@@ -1,7 +1,7 @@
 // ignore_for_file: prefer_const_constructors, duplicate_ignore
 
 import 'dart:async';
-
+import 'package:intl/intl.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -55,13 +55,8 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
      globals.productList.sort((a, b) {
-  int aDate = DateTime.parse(a[1] ?? '').microsecondsSinceEpoch;
-  int bDate = DateTime.parse(b[1] ?? '').microsecondsSinceEpoch;
-  print(aDate);
-  print(bDate);
- 
-  return aDate.compareTo(bDate);
-});
+              return b[1].compareTo(a[1]);
+            });
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -129,7 +124,9 @@ class _MyAppState extends State<MyApp> {
                                   ),
                                 ),
                                 subtitle: Text(
-                                  globals.productList[index][1],
+                                  DateFormat('dd-MMM, yyyy')
+                                                      .format(DateTime.fromMillisecondsSinceEpoch(
+                globals.productList[index][1])),
                                   style: GoogleFonts.openSans(
                                     color: Colors.black54,
                                     fontWeight: FontWeight.w800,
