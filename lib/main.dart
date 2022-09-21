@@ -1,8 +1,13 @@
+// ignore_for_file: prefer_const_constructors, duplicate_ignore
+
 import 'dart:async';
-import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'cameraview.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
@@ -15,125 +20,128 @@ Future<void> main() async {
   // Get a specific camera from the list of available cameras.
   final firstCamera = cameras.first;
 
-  runApp(
-    MaterialApp(
-      theme: ThemeData.dark(),
-      home: TakePictureScreen(
-        // Pass the appropriate camera to the TakePictureScreen widget.
-        camera: firstCamera,
-      ),
-    ),
+  runApp( MaterialApp(title: "dndjfnvds",
+  home: MyApp(camera: firstCamera),)
   );
 }
 
-// A screen that allows users to take a picture using a given camera.
-class TakePictureScreen extends StatefulWidget {
-  const TakePictureScreen({
-    super.key,
-    required this.camera,
-  });
+class MyApp extends StatefulWidget {
+  const MyApp({super.key, required this.camera});
+    final CameraDescription camera;
 
-  final CameraDescription camera;
 
   @override
-  TakePictureScreenState createState() => TakePictureScreenState();
+  State<MyApp> createState() => _MyAppState();
 }
 
-class TakePictureScreenState extends State<TakePictureScreen> {
-  late CameraController _controller;
-  late Future<void> _initializeControllerFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    // To display the current output from the Camera,
-    // create a CameraController.
-    _controller = CameraController(
-      // Get a specific camera from the list of available cameras.
-      widget.camera,
-      // Define the resolution to use.
-      ResolutionPreset.medium,
-    );
-
-    // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
-  }
-
-  @override
-  void dispose() {
-    // Dispose of the controller when the widget is disposed.
-    _controller.dispose();
-    super.dispose();
-  }
-
+class _MyAppState extends State<MyApp> {
+  bool isLoading = false;
+   final textStyle = GoogleFonts.openSans(
+    color: Colors.black,
+    fontWeight: FontWeight.bold,
+    fontSize: 18,
+  );
+  final boldtextStyle = GoogleFonts.openSans(
+    color: Colors.black,
+    fontWeight: FontWeight.normal,
+    fontSize: 18,
+  );
+  final whiteboldtextStyle = GoogleFonts.openSans(
+    color: Colors.white,
+    fontWeight: FontWeight.bold,
+    fontSize: 16,
+  );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
-      // You must wait until the controller is initialized before displaying the
-      // camera preview. Use a FutureBuilder to display a loading spinner until the
-      // controller has finished initializing.
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // If the Future is complete, display the preview.
-            return CameraPreview(_controller);
-          } else {
-            // Otherwise, display a loading indicator.
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
+      appBar: AppBar(
+        title: Text(
+                        'Expiry Product Tracker',
+                        style: GoogleFonts.openSans(
+                          color: Colors.black,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                        ),
+                      ),
+        iconTheme: IconThemeData(color: Colors.black),
+        actions: [
+          
+        ],
+        systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.white,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20))),
+        elevation: 2.0,
+        backgroundColor: Colors.white,
       ),
-      floatingActionButton: FloatingActionButton(
-        // Provide an onPressed callback.
-        onPressed: () async {
-          // Take the Picture in a try / catch block. If anything goes wrong,
-          // catch the error.
-          try {
-            // Ensure that the camera is initialized.
-            await _initializeControllerFuture;
+      backgroundColor: Colors.white,
+      body: isLoading
+          ? Center(
+              child: CircularProgressIndicator(),
+            )
+          : Container(
+              padding: EdgeInsets.all(10),
+              child: Center(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 10,
+                    ),
+                    
+                   
+                    MaterialButton(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        color: Colors.black,
+                        minWidth: 0.8 * MediaQuery.of(context).size.width,
+                        height: 50,
+                        onPressed: () async {
+                         Navigator.push(context,MaterialPageRoute(
+                builder: (context) => TakePictureScreen(camera: widget.camera)));
+                        },
+                        child: Text(
+                          'Click a pic',
+                          style: whiteboldtextStyle,
+                        )),
+                 SizedBox(
+                      height: 10,
+                    ),
+                MaterialButton(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        color: Colors.black,
+                        minWidth: 0.8 * MediaQuery.of(context).size.width,
+                        height: 50,
+                        onPressed: () async {
+                            var image = await ImagePicker.platform.pickImage(source: ImageSource.gallery);
 
-            // Attempt to take a picture and get the file `image`
-            // where it was saved.
-            final image = await _controller.takePicture();
-
-            if (!mounted) return;
-
-            // If the picture was taken, display it on a new screen.
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(
-                  // Pass the automatically generated path to
-                  // the DisplayPictureScreen widget.
-                  imagePath: image.path,
+                        },
+                        child: Text(
+                          'Upload a pic',
+                          style: whiteboldtextStyle,
+                        )),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Center(
+                          child: Text(
+                        '',
+                        style: GoogleFonts.openSans(
+                          color: Colors.green,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 20,
+                          letterSpacing: .2,
+                        ),
+                      )),
+                    ),
+                    
+                  ],
                 ),
               ),
-            );
-          } catch (e) {
-            // If an error occurs, log the error to the console.
-            print(e);
-          }
-        },
-        child: const Icon(Icons.camera_alt),
-      ),
-    );
-  }
-}
-
-// A widget that displays the picture taken by the user.
-class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
-
-  const DisplayPictureScreen({super.key, required this.imagePath});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
-      // The image is stored as a file on the device. Use the `Image.file`
-      // constructor with the given path to display the image.
-      body: Image.file(File(imagePath)),
+            ),
     );
   }
 }
