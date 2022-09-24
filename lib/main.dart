@@ -1,7 +1,6 @@
 // ignore_for_file: prefer_const_constructors, duplicate_ignore
 
 import 'dart:async';
-import 'dart:math';
 import 'package:intl/intl.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:product_expiry_tracker/cart.dart';
 import 'package:product_expiry_tracker/donate.dart';
 import 'package:product_expiry_tracker/notifications_api.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'cameraview.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -149,9 +149,9 @@ class _MyAppState extends State<MyApp> {
     fontWeight: FontWeight.bold,
     fontSize: 22,
   );
-  final manualPname = new TextEditingController();
-  final manualPexp = new TextEditingController();
-  List<String> _cats = [
+  final manualPname = TextEditingController();
+  final manualPexp = TextEditingController();
+  final List<String> _cats = [
     'Please choose a category',
     'Food',
     'Medicine',
@@ -163,16 +163,53 @@ class _MyAppState extends State<MyApp> {
     scaffold.showSnackBar(SnackBar(
         content: Text(message), duration: const Duration(milliseconds: 500)));
   }
+
   final nservices = NotificationApi();
 
+  StreamSubscription? _intentDataStreamSubscription;
+
   @override
-  void initState(){
+  void initState() {
     // TODO: implement initState
     super.initState();
     nservices.setup();
+
+    // For sharing images coming from outside the app while the app is in the memory
+    _intentDataStreamSubscription = ReceiveSharingIntent.getMediaStream()
+        .listen((List<SharedMediaFile>? value) {
+      handleSharedFile(value);
+    }, onError: (err) {
+      print("getIntentDataStream error: $err");
+    });
+
+    // For sharing images coming from outside the app while the app is closed
+    ReceiveSharingIntent.getInitialMedia().then((List<SharedMediaFile>? value) {
+      handleSharedFile(value);
+    });
   }
 
-   
+  void handleSharedFile(List<SharedMediaFile>? sharedFiles) {
+    if (sharedFiles != null && sharedFiles.isNotEmpty) {
+      var file = sharedFiles.first;
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => DisplayPictureScreen(
+            // Pass the automatically generated path to
+            // the DisplayPictureScreen widget.
+            camera: widget.camera,
+            imagePath: file.path,
+          ),
+        ),
+      );
+    } 
+  }
+
+  @override
+  void dispose() {
+    _intentDataStreamSubscription?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     globals.productList.sort((a, b) {
@@ -219,100 +256,105 @@ class _MyAppState extends State<MyApp> {
                             color: Colors.white60,
                             shadowColor: Colors.white,
                             child: ListTile(
-                              trailing: Wrap(
-                                spacing: 12, // space between two icons
-                                children: <Widget>[
-                                  IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        var item = globals.productList[index];
-                                        if (!globals.cartProducts
-                                            .contains(item)) {
-                                          globals.cartProducts.add(item);
-                                          showSnackbar(
-                                              globals.productList[index][0] +
-                                                  ' added to cart :)',
-                                              context);
-                                        }
-                                      });
-                                    },
-                                    icon: Icon(
-                                      Icons.add_shopping_cart,
-                                      color: Colors.black87,
+                                trailing: Wrap(
+                                  spacing: 12, // space between two icons
+                                  children: <Widget>[
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          var item = globals.productList[index];
+                                          if (!globals.cartProducts
+                                              .contains(item)) {
+                                            globals.cartProducts.add(item);
+                                            showSnackbar(
+                                                globals.productList[index][0] +
+                                                    ' added to cart :)',
+                                                context);
+                                          }
+                                        });
+                                      },
+                                      icon: Icon(
+                                        Icons.add_shopping_cart,
+                                        color: Colors.black87,
+                                      ),
+                                    ), // icon-1
+                                    IconButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          globals.productList.removeAt(index);
+                                        });
+                                      },
+                                      icon: Icon(
+                                        Icons.remove_circle,
+                                        color: Colors.black87,
+                                      ),
+                                    ), // icon-2
+                                  ],
+                                ),
+                                onTap: () {
+                                  nservices.showNotification(
+                                    title:
+                                        "${globals.productList[index][0]} is expiring soon!",
+                                    body:
+                                        "Your product ${globals.productList[index][0]} is expiring soon on ${DateFormat('dd-MMM, yyyy').format(DateTime.fromMillisecondsSinceEpoch(globals.productList[index][1]))}. Please consume it before it expires!",
+                                    payload: "TestNotification",
+                                  );
+                                  _openDetailBottomSheet(
+                                      globals.productList[index],
+                                      expiryStatus[index]);
+                                },
+                                title: Text(
+                                  globals.productList[index][0],
+                                  style: GoogleFonts.openSans(
+                                    color: expiryStatus[index],
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 16,
+                                    letterSpacing: .3,
+                                  ),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                      height: 2,
                                     ),
-                                  ), // icon-1
-                                  IconButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        globals.productList.removeAt(index);
-                                      });
-                                    },
-                                    icon: Icon(
-                                      Icons.remove_circle,
-                                      color: Colors.black87,
+                                    Text(
+                                      DateFormat('dd-MMM, yyyy').format(
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              globals.productList[index][1])),
+                                      style: GoogleFonts.openSans(
+                                        color: expiryStatus[index],
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 15,
+                                        letterSpacing: .3,
+                                      ),
                                     ),
-                                  ), // icon-2
-                                ],
-                              ),
-                              onTap: () {
-                                nservices.showNotification(
-                                      title: "${globals.productList[index][0]} is expiring soon!",
-                                      body:
-                                          "Your product ${globals.productList[index][0]} is expiring soon on ${DateFormat('dd-MMM, yyyy').format(
-                                    DateTime.fromMillisecondsSinceEpoch(
-                                        globals.productList[index][1]))}. Please consume it before it expires!",
-                                      payload: "TestNotification",
-                                     );
-                                _openDetailBottomSheet(
-                                    globals.productList[index],
-                                    expiryStatus[index]);
-                              },
-                              title: Text(
-                                globals.productList[index][0],
-                                style: GoogleFonts.openSans(
-                                  color: expiryStatus[index],
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16,
-                                  letterSpacing: .3,
-                                ),
-                              ),
-                              subtitle: Column(crossAxisAlignment: CrossAxisAlignment.start,children: [
-                                                              SizedBox(height: 2,),
-                                Text(
-                                DateFormat('dd-MMM, yyyy').format(
-                                    DateTime.fromMillisecondsSinceEpoch(
-                                        globals.productList[index][1])),
-                                style: GoogleFonts.openSans(
-                                  color: expiryStatus[index],
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 15,
-                                  letterSpacing: .3,
-                                ),
-                              ),
-                              SizedBox(height: 2,),
-                              daysDifflis[index]==-1?Text(
-                                'Already Expired',
-                                style: GoogleFonts.openSans(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 15,
-                                  letterSpacing: .3,
-                                ),
-                              ):Text(
-                                'Expiring in ' + daysDifflis[index].toString() + ' day(s)',
-                                style: GoogleFonts.openSans(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 15,
-                                  letterSpacing: .3,
-                                ),
-                              ),
-                              
-                              
-
-                              ],)
-                              
-                            ));
+                                    SizedBox(
+                                      height: 2,
+                                    ),
+                                    daysDifflis[index] == -1
+                                        ? Text(
+                                            'Already Expired',
+                                            style: GoogleFonts.openSans(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 15,
+                                              letterSpacing: .3,
+                                            ),
+                                          )
+                                        : Text(
+                                            'Expiring in ' +
+                                                daysDifflis[index].toString() +
+                                                ' day(s)',
+                                            style: GoogleFonts.openSans(
+                                              color: Colors.black,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 15,
+                                              letterSpacing: .3,
+                                            ),
+                                          ),
+                                  ],
+                                )));
                       },
                     ),
                   )),
@@ -540,7 +582,8 @@ class _MyAppState extends State<MyApp> {
                                 ),
                                 SizedBox(
                                   height: 5,
-                                ),Padding(
+                                ),
+                                Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
@@ -617,11 +660,11 @@ class _MyAppState extends State<MyApp> {
         builder: (context) {
           return FractionallySizedBox(
             heightFactor: 0.8,
-            child:
-                Container(
-                  height: 500,
-                  child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
-                              Padding(
+            child: Container(
+              height: 500,
+              child:
+                  Column(mainAxisAlignment: MainAxisAlignment.start, children: [
+                Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Container(
                     width: 40,
@@ -631,11 +674,11 @@ class _MyAppState extends State<MyApp> {
                       color: Colors.grey,
                     ),
                   ),
-                              ),
-                              SizedBox(
+                ),
+                SizedBox(
                   height: 10,
-                              ),
-                              Expanded(
+                ),
+                Expanded(
                   child: Container(
                       width: 0.9 * MediaQuery.of(context).size.width,
                       child: SingleChildScrollView(
@@ -657,7 +700,8 @@ class _MyAppState extends State<MyApp> {
                                       fontSize: 18,
                                     ),
                                     cursorHeight: 25,
-                                    textCapitalization: TextCapitalization.words,
+                                    textCapitalization:
+                                        TextCapitalization.words,
                                     decoration: InputDecoration(
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(10),
@@ -686,7 +730,8 @@ class _MyAppState extends State<MyApp> {
                                           TextCapitalization.words,
                                       decoration: InputDecoration(
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                         ),
                                         hintText: 'Enter expiry date',
                                         hintStyle: GoogleFonts.openSans(
@@ -697,7 +742,9 @@ class _MyAppState extends State<MyApp> {
                                       )),
                                 ),
                               ),
-                              SizedBox(height: 15,),
+                              SizedBox(
+                                height: 15,
+                              ),
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Center(
@@ -721,8 +768,8 @@ class _MyAppState extends State<MyApp> {
                           ),
                         ),
                       )),
-                              ),
-                              Padding(
+                ),
+                Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: MaterialButton(
                       splashColor: Colors.white70,
@@ -738,9 +785,9 @@ class _MyAppState extends State<MyApp> {
                       padding: EdgeInsets.all(18),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)))),
-                              )
-                            ]),
-                ),
+                )
+              ]),
+            ),
           );
         });
   }

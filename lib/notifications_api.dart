@@ -7,7 +7,7 @@ import 'package:timezone/data/latest.dart' as tzData;
 class NotificationApi {
   final notifications = FlutterLocalNotificationsPlugin();
   final notificaitonClicks = BehaviorSubject<String?>();
-  final androidSetting = AndroidInitializationSettings('logo');
+  final androidSetting = const AndroidInitializationSettings('logo');
 
 
    setup() async {
@@ -52,7 +52,7 @@ class NotificationApi {
   }
 
   getNotificationDetails() async {
-    return NotificationDetails(
+    return const NotificationDetails(
         android: AndroidNotificationDetails(
           'channel id',
           'channel name',
