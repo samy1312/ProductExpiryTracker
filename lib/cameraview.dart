@@ -57,7 +57,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Expiry Product Tracker',
+          'Take a pic of the brand',
           style: GoogleFonts.openSans(
             color: Colors.black,
             fontWeight: FontWeight.w800,
@@ -89,7 +89,123 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             return CameraPreview(_controller);
           } else {
             // Otherwise, display a loading indicator.
-            return const Center(child: CircularProgressIndicator());
+            return  Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.black),));
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.black,
+        // Provide an onPressed callback.
+        onPressed: () async {
+          // Take the Picture in a try / catch block. If anything goes wrong,
+          // catch the error.
+          try {
+            // Ensure that the camera is initialized.
+            await _initializeControllerFuture;
+
+            // Attempt to take a picture and get the file `image`
+            // where it was saved.
+            final image = await _controller.takePicture();
+
+            if (!mounted) return;
+
+            // If the picture was taken, display it on a new screen.
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => DummyTake(
+                  // Pass the automatically generated path to
+                  // the DisplayPictureScreen widget.
+                  camera: widget.camera,
+                ),
+              ),
+            );
+          } catch (e) {
+            // If an error occurs, log the error to the console.
+            print(e);
+          }
+        },
+        child: const Icon(
+          Icons.camera_alt,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+class DummyTake extends StatefulWidget {
+  const DummyTake({super.key, required this.camera});
+    final CameraDescription camera;
+
+  @override
+  State<DummyTake> createState() => _DummyTakeState();
+}
+
+class _DummyTakeState extends State<DummyTake> {
+  late CameraController _controller;
+  late Future<void> _initializeControllerFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    // To display the current output from the Camera,
+    // create a CameraController.
+    _controller = CameraController(
+      // Get a specific camera from the list of available cameras.
+      widget.camera,
+      // Define the resolution to use.
+      ResolutionPreset.medium,
+    );
+
+    // Next, initialize the controller. This returns a Future.
+    _initializeControllerFuture = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    // Dispose of the controller when the widget is disposed.
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Take a pic of the expiry date',
+          style: GoogleFonts.openSans(
+            color: Colors.black,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+          ),
+        ),
+        iconTheme: IconThemeData(color: Colors.black),
+        actions: [],
+        systemOverlayStyle: SystemUiOverlayStyle(
+            statusBarColor: Colors.white,
+            statusBarIconBrightness: Brightness.dark,
+            statusBarBrightness: Brightness.light),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20))),
+        elevation: 2.0,
+        backgroundColor: Colors.white,
+      ),
+      backgroundColor: Colors.white,
+      // You must wait until the controller is initialized before displaying the
+      // camera preview. Use a FutureBuilder to display a loading spinner until the
+      // controller has finished initializing.
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            // If the Future is complete, display the preview.
+            return CameraPreview(_controller);
+          } else {
+            // Otherwise, display a loading indicator.
+            return  Center(child: CircularProgressIndicator(valueColor: new AlwaysStoppedAnimation<Color>(Colors.black),));
           }
         },
       ),
@@ -155,7 +271,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Expiry Product Tracker',
+          'best Before',
           style: GoogleFonts.openSans(
             color: Colors.black,
             fontWeight: FontWeight.w800,
@@ -179,7 +295,8 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       // The image is stored as a file on the device. Use the `Image.file`
       // constructor with the given path to display the image.
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator(     valueColor: new AlwaysStoppedAnimation<Color>(Colors.black),
+))
           : SingleChildScrollView(
               child: Column(children: [
                 Image.file(File(widget.imagePath)),
@@ -235,7 +352,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
             // // string to uri
             var uri = Uri.parse(
-                "https://a6d5-2404-f801-8028-3-ec1d-cc51-1674-6baa.in.ngrok.io/api/LifeTracker");
+                "https://c6cf-2404-f801-8028-3-f1e6-cdde-7501-ceb2.in.ngrok.io/api/LifeTracker");
             var response = await http.post(uri, headers: headers, body: body);
 
             // // create multipart request
@@ -259,30 +376,30 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
             print('${response.statusCode}');
             var serverData = json.decode(response.body);
+            print(serverData);
             globals.productList.add([
               serverData.keys.elementAt(0),
               int.parse(serverData.values.elementAt(0))
             ]);
-            print(serverData);
             var dt = DateTime.fromMillisecondsSinceEpoch(
                 int.parse(serverData.values.elementAt(0)));
             print(dt);
             print(globals.productList);
            
-            Navigator.push(
+            Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => MyApp(
+                    builder: (context) => BottomWrapper(
                           camera: widget.camera,
                         )));
             setState(() {
               isLoading = false;
             });
 
-            // // listen for response
-            // response.stream.transform(utf8.decoder).listen((value) {
-            //   print(value);
-            // });
+          //   // // listen for response
+          //   // response.stream.transform(utf8.decoder).listen((value) {
+          //   //   print(value);
+          //   // });
           } catch (e) {
             // If an error occurs, log the error to the console.
             print(e);
