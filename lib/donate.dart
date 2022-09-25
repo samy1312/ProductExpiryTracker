@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 class DonatePage extends StatefulWidget {
   const DonatePage({super.key});
 
@@ -29,7 +29,7 @@ class _DonatePageState extends State<DonatePage> {
     fontWeight: FontWeight.bold,
     fontSize: 22,
   );
-  
+  final uri = Uri.parse("");
   @override
   void initState() {
     // TODO: implement initState
@@ -75,7 +75,7 @@ class _DonatePageState extends State<DonatePage> {
                                           width: 5,
                                         ),
                                         Text(
-                                          '     20',
+                                          '     108',
                                           style: GoogleFonts.openSans(
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
@@ -101,7 +101,7 @@ class _DonatePageState extends State<DonatePage> {
                                           width: 5,
                                         ),
                                         Text(
-                                          '     2',
+                                          '     11',
                                           style: GoogleFonts.openSans(
                                             color: Colors.black,
                                             fontWeight: FontWeight.bold,
@@ -129,66 +129,82 @@ class _DonatePageState extends State<DonatePage> {
                   ),
                 ),
               ),
-            Card(
-              color: Colors.white60,
-              elevation: 6,
-              margin: const EdgeInsets.all(12),
-              child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Container(
-                      width: double.infinity,
-                      height: 170,
-                      decoration: const BoxDecoration(
-                          image: DecorationImage(
-                              image: AssetImage("assets/africa.png"),
-                              fit: BoxFit.cover
-                          )
-                      ),
-                      child: Container(
-                          alignment: Alignment.bottomRight,
-                          padding: const EdgeInsets.all(12),
-                          child: const Text(
-                              "actionagainsthunger.org",
-                              style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white54
-                              )
-                          )
-                      )
-                  )
-              )
+            InkWell(
+              onTap: () async{
+                final url = Uri.parse("https://www.actionagainsthunger.org/");
+                if(await canLaunchUrl(url)){
+                  await launchUrl(url,mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Card(
+                color: Colors.white60,
+                elevation: 6,
+                margin: const EdgeInsets.all(12),
+                child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Container(
+                        width: double.infinity,
+                        height: 170,
+                        decoration: const BoxDecoration(
+                            image: DecorationImage(
+                                image: AssetImage("assets/africa.png"),
+                                fit: BoxFit.cover
+                            )
+                        ),
+                        child: Container(
+                            alignment: Alignment.bottomRight,
+                            padding: const EdgeInsets.all(12),
+                            child: const Text(
+                                "actionagainsthunger.org",
+                                style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white54
+                                )
+                            )
+                        )
+                    )
+                )
+              ),
             ),
             
-            Card(
-              color: Colors.white60,
-              elevation: 6,
-              margin: const EdgeInsets.all(12),
-              child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Container(
-                      width: double.infinity,
-                      height: 150,
-                      decoration: const BoxDecoration(
-                          image: DecorationImage(
-                              image: AssetImage("assets/charity-19.png"),
-                              fit: BoxFit.cover
-                          )
-                      ),
-                      child: Container(
-                          alignment: Alignment.bottomRight,
-                          padding: const EdgeInsets.all(12),
-                          child: const Text(
-                              "sharemeds.in",
-                              style: TextStyle(
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey
-                              )
-                          )
-                      )
-                  )
-              )
+            InkWell(
+               onTap: () async{
+                final url = Uri.parse("https://sharemeds.in/");
+                if(await canLaunchUrl(url)){
+                  await launchUrl(url,mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Card(
+                color: Colors.white60,
+                elevation: 6,
+                margin: const EdgeInsets.all(12),
+                child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Container(
+                        width: double.infinity,
+                        height: 150,
+                        decoration: const BoxDecoration(
+                            image: DecorationImage(
+                                image: AssetImage("assets/charity-19.png"),
+                                fit: BoxFit.cover
+                            )
+                        ),
+                        child: Container(
+                            alignment: Alignment.bottomRight,
+                            padding: const EdgeInsets.all(12),
+                            child: const Text(
+                                "sharemeds.in",
+                                style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey
+                                )
+                            )
+                        )
+                    )
+                )
+              ),
             ),
             Card(
               color: Colors.white60,

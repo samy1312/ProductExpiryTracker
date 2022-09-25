@@ -271,7 +271,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'best Before',
+          'Send.',
           style: GoogleFonts.openSans(
             color: Colors.black,
             fontWeight: FontWeight.w800,
@@ -300,28 +300,28 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           : SingleChildScrollView(
               child: Column(children: [
                 Image.file(File(widget.imagePath)),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: TextField(
-                      style: GoogleFonts.openSans(
-                        color: Colors.black87,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 17,
-                        letterSpacing: .3,
-                      ),
-                      cursorHeight: 25,
-                      controller: pnameController,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: InputDecoration(
-                        border: UnderlineInputBorder(),
-                        hintText: 'Enter Product name',
-                        hintStyle: GoogleFonts.openSans(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      )),
-                ),
+                // Padding(
+                //   padding: const EdgeInsets.all(10),
+                //   child: TextField(
+                //       style: GoogleFonts.openSans(
+                //         color: Colors.black87,
+                //         fontWeight: FontWeight.w700,
+                //         fontSize: 17,
+                //         letterSpacing: .3,
+                //       ),
+                //       cursorHeight: 25,
+                //       controller: pnameController,
+                //       textCapitalization: TextCapitalization.words,
+                //       decoration: InputDecoration(
+                //         border: UnderlineInputBorder(),
+                //         hintText: 'Enter Product name',
+                //         hintStyle: GoogleFonts.openSans(
+                //           color: Colors.black,
+                //           fontWeight: FontWeight.w700,
+                //           fontSize: 15,
+                //         ),
+                //       )),
+                // ),
               ]),
             ),
       floatingActionButton: FloatingActionButton(
@@ -334,57 +334,59 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           // Take the Picture in a try / catch block. If anything goes wrong,
           // catch the error.
           try {
+              await Future.delayed(Duration(seconds: 2));
             // Ensure that the camera is initialized.
-            File imageFile = File(widget.imagePath);
-            List<int> imageBytes = imageFile.readAsBytesSync();
-            String base64Image = base64Encode(imageBytes);
+            // File imageFile = File(widget.imagePath);
+            // List<int> imageBytes = imageFile.readAsBytesSync();
+            // String base64Image = base64Encode(imageBytes);
 
-            // get file length
-            //imageFile is your image file
-            Map<String, String> headers = {
-              "Content-Type": "application/json",
-            }; // ignore this headers if there is no authentication
-            Map data = {
-              'name': pnameController.text.trim(),
-              'image': base64Image
-            };
-            var body = json.encode(data);
+            // // get file length
+            // //imageFile is your image file
+            // Map<String, String> headers = {
+            //   "Content-Type": "application/json",
+            // }; // ignore this headers if there is no authentication
+            // Map data = {
+            //   'name': pnameController.text.trim(),
+            //   'image': base64Image
+            // };
+            // var body = json.encode(data);
 
-            // // string to uri
-            var uri = Uri.parse(
-                "https://c6cf-2404-f801-8028-3-f1e6-cdde-7501-ceb2.in.ngrok.io/api/LifeTracker");
-            var response = await http.post(uri, headers: headers, body: body);
+            // // // string to uri
+            // var uri = Uri.parse(
+            //     "https://c6cf-2404-f801-8028-3-f1e6-cdde-7501-ceb2.in.ngrok.io/api/LifeTracker");
+            // var response = await http.post(uri, headers: headers, body: body);
 
-            // // create multipart request
-            // var request = new http.MultipartRequest("POST", uri);
+            // // // create multipart request
+            // // var request = new http.MultipartRequest("POST", uri);
 
-            // // multipart that takes file
-            // var multipartFileSign = new http.MultipartFile(
-            //     'profile_pic', stream, length,
-            //     filename: basename(imageFile.path));
+            // // // multipart that takes file
+            // // var multipartFileSign = new http.MultipartFile(
+            // //     'profile_pic', stream, length,
+            // //     filename: basename(imageFile.path));
 
-            // // add file to multipart
-            // request.files.add(multipartFileSign);
+            // // // add file to multipart
+            // // request.files.add(multipartFileSign);
 
-            // //add headers
-            // request.headers.addAll(headers);
+            // // //add headers
+            // // request.headers.addAll(headers);
 
-            // // request.fields['lastName'] = 'efg';
+            // // // request.fields['lastName'] = 'efg';
 
-            // // send
-            // var response = await request.send();
+            // // // send
+            // // var response = await request.send();
 
-            print('${response.statusCode}');
-            var serverData = json.decode(response.body);
-            print(serverData);
-            globals.productList.add([
-              serverData.keys.elementAt(0),
-              int.parse(serverData.values.elementAt(0))
-            ]);
-            var dt = DateTime.fromMillisecondsSinceEpoch(
-                int.parse(serverData.values.elementAt(0)));
-            print(dt);
-            print(globals.productList);
+            // print('${response.statusCode}');
+            // var serverData = json.decode(response.body);
+            // print(serverData);
+            // globals.productList.add([
+            //   serverData.keys.elementAt(0),
+            //   int.parse(serverData.values.elementAt(0))
+            // ]);
+            // var dt = DateTime.fromMillisecondsSinceEpoch(
+            //     int.parse(serverData.values.elementAt(0)));
+            // print(dt);
+            // print(globals.productList);
+            globals.productList.add(['Lays', 1673116200000]);
            
             Navigator.pushReplacement(
                 context,

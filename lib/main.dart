@@ -47,7 +47,7 @@ class _BottomWrapperState extends State<BottomWrapper> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(
-          'Best Before',
+          'PREACH',
           style: GoogleFonts.openSans(
             color: Colors.black,
             fontWeight: FontWeight.w800,

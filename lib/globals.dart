@@ -1,10 +1,11 @@
 library my_prj.globals;
 
 List productList = [
-    ['Lays', 1675443733737],
-    ['Bingo', 1275449000000],
-    ['Dolo', 1075449000000],
-    ['Soap', 1664130600000]
+    ['Dolo Medicine', 1663612200000],
+    ['Milk', 1663785000000],
+    ['Dove Shampoo', 1665340200000],
+    ['Bread', 1664303400000],
+    ['Pepsi', 1668882600000],
 ];
 
 List cartProducts = [];
